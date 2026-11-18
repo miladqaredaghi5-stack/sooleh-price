@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="محاسبه آنلاین قیمت ساخت سوله با وارد کردن عرض و طول | میلاد قره‌داغی، قم">
+</head>
+<body>
+<title>محاسبه قیمت سوله</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap">
+<style>
+/* Layout: single centered column, blueprint plan drawing above a priced breakdown */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --fg:#0e1b2e; --muted:#566579; --line:#d8dee7;
+  --accent:#e8710a; --accent-ink:#0e1b2e; --navy:#12294a; --bar:#e8710a; --bar-bg:#e6ebf2;
+  --draw:#12294a; --draw-soft:#9fb1c9; --warn:#b3261e;
+  --font:'Vazirmatn','Tahoma','Segoe UI',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1626; --surface:#12233b; --fg:#eef2f7; --muted:#9fb0c6; --line:#24395a;
+    --accent:#ff8a00; --accent-ink:#0b1626; --navy:#cfe0f7; --bar:#ff8a00; --bar-bg:#1d3354;
+    --draw:#cfe0f7; --draw-soft:#4d6a93; --warn:#ff8b82; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1626; --surface:#12233b; --fg:#eef2f7; --muted:#9fb0c6; --line:#24395a;
+  --accent:#ff8a00; --accent-ink:#0b1626; --navy:#cfe0f7; --bar:#ff8a00; --bar-bg:#1d3354;
+  --draw:#cfe0f7; --draw-soft:#4d6a93; --warn:#ff8b82; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.7;
+  padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.brand{font-size:14px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.brand b{color:var(--fg);font-weight:600}
+h1{font-size:clamp(26px,6vw,34px);line-height:1.35;font-weight:800;margin:0;text-wrap:balance}
+.lead{margin:6px 0 0;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:420px){.fields{grid-template-columns:1fr}}
+label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+.inp{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);padding:0 12px}
+.inp:focus-within{border-color:var(--accent);outline:2px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;color:var(--fg);font:inherit;font-size:22px;font-weight:800;padding:10px 0;outline:none;text-align:right}
+.inp span{color:var(--muted);font-size:14px}
+.hint{font-size:12.5px;color:var(--muted);margin-top:4px}
+.err{color:var(--warn);font-size:14px;margin-top:10px;min-height:0}
+.plan{width:100%;height:auto;display:block;margin-top:14px}
+.plan text{font-family:var(--font);font-size:11px;fill:var(--muted)}
+.result{display:flex;flex-direction:column;gap:14px}
+.total-label{font-size:14px;color:var(--muted)}
+.total{font-size:clamp(34px,9vw,48px);font-weight:800;line-height:1.2;color:var(--fg);font-variant-numeric:tabular-nums}
+.total small{font-size:.42em;font-weight:600;color:var(--muted);margin-inline-start:6px}
+.words{font-weight:600;color:var(--accent)}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-variant-numeric:tabular-nums}
+.rows{display:flex;flex-direction:column;gap:12px;margin:0;padding:0;list-style:none}
+.row .top{display:flex;justify-content:space-between;gap:12px;font-size:15px}
+.row .top span:last-child{font-variant-numeric:tabular-nums;font-weight:600}
+.track{height:8px;border-radius:99px;background:var(--bar-bg);margin-top:5px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--bar);border-radius:99px;transition:width .35s ease}
+.cta{display:flex;flex-direction:column;gap:10px}
+.cta h2{font-size:18px;margin:0}
+.cta p{margin:0;color:var(--muted);font-size:14.5px}
+.phone{font-size:26px;font-weight:800;letter-spacing:.5px;direction:ltr;text-align:center;user-select:all;font-variant-numeric:tabular-nums}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn{flex:1;min-width:140px;text-align:center;font:inherit;font-weight:600;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);background:transparent;color:var(--fg);text-decoration:none;cursor:pointer}
+.btn.main{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.notes{font-size:13px;color:var(--muted);line-height:1.9}
+.notes p{margin:0 0 4px}
+@media (prefers-reduced-motion:reduce){.track i{transition:none}}
+
+</style>
+
+<div class="wrap" dir="rtl" lang="fa">
+  <div>
+    <div class="brand"><b>میلاد قره‌داغی</b><span>پیمانکار سوله و ساختمان صنعتی · قم</span></div>
+    <h1 style="margin-top:14px">قیمت سوله‌ات رو همین الان ببین</h1>
+    <p class="lead">فقط عرض و طول رو وارد کن؛ هزینه ساخت از صفر تا تحویل، با ریز هر بخش.</p>
+  </div>
+
+  <section class="panel" aria-label="ابعاد سوله">
+    <div class="fields">
+      <div>
+        <label for="w">عرض (دهانه)</label>
+        <div class="inp"><input id="w" type="text" inputmode="decimal" autocomplete="off" value="20"><span>متر</span></div>
+        <div class="hint">بین ۶ تا ۶۰ متر</div>
+      </div>
+      <div>
+        <label for="l">طول</label>
+        <div class="inp"><input id="l" type="text" inputmode="decimal" autocomplete="off" value="40"><span>متر</span></div>
+        <div class="hint">بین ۶ تا ۲۰۰ متر</div>
+      </div>
+    </div>
+    <div class="err" id="err" role="alert"></div>
+    <svg class="plan" id="plan" viewBox="0 0 320 190" role="img" aria-label="نقشه شماتیک سوله"></svg>
+  </section>
+
+  <section class="panel result" id="result" aria-live="polite">
+    <div>
+      <div class="total-label">هزینه تقریبی ساخت سوله (صفر تا صد)</div>
+      <div class="total"><span id="total">—</span><small>تومان</small></div>
+      <div class="words" id="words"></div>
+    </div>
+    <div class="meta">
+      <span>مساحت: <b id="area">—</b> متر مربع</span>
+      <span>هر متر مربع: <b id="per">—</b> تومان</span>
+      <span>بازه قیمت: <b id="range">—</b></span>
+    </div>
+    <ul class="rows" id="rows"></ul>
+  </section>
+
+  <section class="panel cta">
+    <h2>برای قیمت دقیق، پروژه رو بررسی می‌کنیم</h2>
+    <p>بازدید از محل پروژه در قم و اطراف، مشاوره و قرارداد.</p>
+    <div class="phone" id="phone">۰۹۱۲۴۵۸۳۲۶۳</div>
+    <div class="btns">
+      <a class="btn main" href="tel:09124583263">تماس با من</a>
+      <button class="btn" id="copy" type="button">کپی شماره</button>
+      <a class="btn" href="https://www.instagram.com/m.qaredaghi/" target="_blank" rel="noopener">پیج اینستاگرام</a>
+    </div>
+  </section>
+
+  <div class="notes">
+    <p>این عدد برآورد اولیه است و قیمت نهایی بعد از بررسی نقشه، خاک زمین، نوع پوشش و شرایط پروژه مشخص می‌شود.</p>
+    <p>محاسبه بر اساس ارتفاع <span id="h"></span> متر، سقف شیب‌دار و اسکلت فلزی انجام شده است.</p>
+    <p>آخرین بروزرسانی نرخ‌ها: <span id="date"></span></p>
+  </div>
+</div>
+
+<script type="application/json" id="rates-data">{"date":"۲۷ آبان ۱۴۰۵","height":6,"roofFactor":1.1,"margin":0.08,"limits":{"wMin":6,"wMax":60,"lMin":6,"lMax":200},"items":[{"key":"design","label":"طراحی و نقشه سازه","perUnit":240000,"base":"area"},{"key":"foundation","label":"فونداسیون و بتن‌ریزی","perUnit":2500000,"base":"area"},{"key":"steel","label":"اسکلت فلزی","perUnit":11250000,"base":"area"},{"key":"roof","label":"پوشش سقف","perUnit":2600000,"base":"roof"},{"key":"walls","label":"دیوارچینی و پوشش جانبی","perUnit":3500000,"base":"wall"},{"key":"install","label":"دستمزد اجرا و نصب","perUnit":2500000,"base":"area"}]}</script>
+<script>
+const RATES = JSON.parse(document.getElementById("rates-data").textContent);
+
+function calc(w, l, R) {
+  const area = w * l;
+  const bases = { area: area, roof: area * R.roofFactor, wall: 2 * (w + l) * R.height };
+  const items = R.items.map(it => ({ key: it.key, label: it.label, cost: it.perUnit * bases[it.base] }));
+  const total = items.reduce((s, x) => s + x.cost, 0);
+  return { area, items, total, low: total * (1 - R.margin), high: total * (1 + R.margin) };
+}
+
+const faN = n => Math.round(n).toLocaleString("fa-IR");
+function words(n) {
+  if (n >= 1e9) return (n / 1e9).toLocaleString("fa-IR", { maximumFractionDigits: 2 }) + " میلیارد تومان";
+  return (n / 1e6).toLocaleString("fa-IR", { maximumFractionDigits: 0 }) + " میلیون تومان";
+}
+function short(n) {
+  return n >= 1e9 ? (n / 1e9).toLocaleString("fa-IR", { maximumFractionDigits: 2 }) + " میلیارد" : (n / 1e6).toLocaleString("fa-IR", { maximumFractionDigits: 0 }) + " میلیون";
+}
+function parse(v) {
+  const map = { "۰":0,"۱":1,"۲":2,"۳":3,"۴":4,"۵":5,"۶":6,"۷":7,"۸":8,"۹":9,"٠":0,"١":1,"٢":2,"٣":3,"٤":4,"٥":5,"٦":6,"٧":7,"٨":8,"٩":9 };
+  const s = String(v).replace(/[۰-۹٠-٩]/g, d => map[d]).replace(/[٫,،]/g, ".").trim();
+  return s === "" ? NaN : Number(s);
+}
+
+const $ = id => document.getElementById(id);
+function drawPlan(w, l) {
+  const svg = $("plan"), maxW = 220, maxH = 100;
+  const k = Math.min(maxW / l, maxH / w);
+  const pw = l * k, ph = w * k, x0 = (320 - pw) / 2, y0 = 30 + (maxH - ph) / 2;
+  let g = `<rect x="${x0}" y="${y0}" width="${pw}" height="${ph}" rx="2" style="fill:var(--bg);stroke:var(--draw);stroke-width:2"/>`;
+  const frames = Math.max(2, Math.min(12, Math.round(l / 6)));
+  for (let i = 1; i < frames; i++) {
+    const x = x0 + (pw * i) / frames;
+    g += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0 + ph}" style="stroke:var(--draw-soft);stroke-width:1.2"/>`;
+  }
+  g += `<line x1="${x0}" y1="${y0 + ph / 2}" x2="${x0 + pw}" y2="${y0 + ph / 2}" style="stroke:var(--accent);stroke-width:1.2;stroke-dasharray:5 4"/>`;
+  const ly = y0 + ph + 18;
+  g += `<line x1="${x0}" y1="${ly - 8}" x2="${x0 + pw}" y2="${ly - 8}" style="stroke:var(--muted);stroke-width:1"/>`;
+  g += `<text x="${160}" y="${ly + 6}" text-anchor="middle">طول ${w ? l.toLocaleString("fa-IR") : ""} متر</text>`;
+  const lx = x0 - 14;
+  g += `<line x1="${lx}" y1="${y0}" x2="${lx}" y2="${y0 + ph}" style="stroke:var(--muted);stroke-width:1"/>`;
+  g += `<text x="${lx - 6}" y="${y0 + ph / 2}" text-anchor="middle" transform="rotate(-90 ${lx - 6} ${y0 + ph / 2})">عرض ${w.toLocaleString("fa-IR")} متر</text>`;
+  svg.innerHTML = g;
+}
+
+function render() {
+  const R = RATES, L = R.limits;
+  const w = parse($("w").value), l = parse($("l").value);
+  const err = $("err");
+  let msg = "";
+  if (!isFinite(w) || !isFinite(l) || w <= 0 || l <= 0) msg = "عرض و طول رو به متر وارد کن.";
+  else if (w < L.wMin || w > L.wMax || l < L.lMin || l > L.lMax) msg = "این ابعاد خارج از محدوده محاسبه آنلاینه. برای قیمت دقیق با من تماس بگیر.";
+  err.textContent = msg;
+  if (msg) { ["total","area","per","range"].forEach(i => $(i).textContent = "—"); $("words").textContent = ""; $("rows").innerHTML = ""; return; }
+  const r = calc(w, l, R);
+  drawPlan(w, l);
+  $("total").textContent = faN(r.total);
+  $("words").textContent = "حدود " + words(r.total);
+  $("area").textContent = faN(r.area);
+  $("per").textContent = faN(r.total / r.area);
+  $("range").textContent = short(r.low) + " تا " + short(r.high);
+  $("rows").innerHTML = r.items.map(it => {
+    const pct = Math.round((it.cost / r.total) * 100);
+    return `<li class="row"><div class="top"><span>${it.label}</span><span>${faN(it.cost)} تومان</span></div><div class="track"><i style="width:${pct}%"></i></div></li>`;
+  }).join("");
+}
+
+$("h").textContent = RATES.height.toLocaleString("fa-IR");
+$("date").textContent = RATES.date;
+$("w").addEventListener("input", render);
+$("l").addEventListener("input", render);
+$("copy").addEventListener("click", async () => {
+  const b = $("copy"), t = "09124583263";
+  try { await navigator.clipboard.writeText(t); b.textContent = "کپی شد"; }
+  catch (e) { const rg = document.createRange(); rg.selectNodeContents($("phone")); const s = getSelection(); s.removeAllRanges(); s.addRange(rg); b.textContent = "شماره انتخاب شد"; }
+  setTimeout(() => b.textContent = "کپی شماره", 1800);
+});
+
+render();
+</script>
+</body>
+</html>
